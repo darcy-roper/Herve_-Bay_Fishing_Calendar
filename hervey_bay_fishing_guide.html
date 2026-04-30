@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hervey Bay & Fraser Coast — Monthly Fishing Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ocean-deep: #0a1628;
+    --ocean-mid: #0d2240;
+    --ocean-teal: #0e7490;
+    --ocean-bright: #22d3ee;
+    --sand: #f5e6c8;
+    --coral: #e05c3a;
+    --gold: #d4a843;
+    --text-light: #e2eefc;
+    --text-muted: #8ca8c4;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Source Sans 3',sans-serif;
+    background:var(--ocean-deep);
+    color:var(--text-light);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 100%,rgba(14,116,144,0.18) 0%,transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%,rgba(34,211,238,0.08) 0%,transparent 50%),
+      linear-gradient(180deg,#0a1628 0%,#0d2240 50%,#0a1f38 100%);
+    z-index:-1;
+    pointer-events:none;
+  }
+  header {
+    text-align:center;
+    padding:60px 20px 40px;
+  }
+  header::after {
+    content:'';
+    display:block;
+    height:2px;
+    background:linear-gradient(90deg,transparent,var(--ocean-teal),var(--ocean-bright),var(--ocean-teal),transparent);
+    margin-top:40px;
+  }
+  .eyebrow {
+    font-size:0.82rem;
+    font-weight:300;
+    letter-spacing:0.35em;
+    text-transform:uppercase;
+    color:var(--ocean-bright);
+    margin-bottom:12px;
+  }
+  h1 {
+    font-family:'Playfair Display',serif;
+    font-size:clamp(2rem,5vw,3.6rem);
+    font-weight:900;
+    color:var(--sand);
+    line-height:1.1;
+    margin-bottom:14px;
+  }
+  h1 span { color:var(--ocean-bright); }
+  .header-sub {
+    font-size:0.95rem;
+    color:var(--text-muted);
+    max-width:580px;
+    margin:0 auto;
+    line-height:1.6;
+  }
+  .legend {
+    max-width:1200px;
+    margin:30px auto 0;
+    padding:0 20px 10px;
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    font-size:0.78rem;
+    color:var(--text-muted);
+  }
+  .li { display:flex;align-items:center;gap:7px; }
+  .lb { width:12px;height:12px;border-radius:3px; }
+  .lb-gold { background:var(--gold); }
+  .lb-coral { background:var(--coral); }
+  .lb-teal { background:var(--ocean-teal); }
+  .season-nav {
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+    padding:20px 20px 10px;
+  }
+  .sbtn {
+    padding:8px 20px;
+    border-radius:30px;
+    border:1.5px solid rgba(255,255,255,0.15);
+    background:transparent;
+    color:var(--text-muted);
+    font-family:'Source Sans 3',sans-serif;
+    font-size:0.88rem;
+    letter-spacing:0.04em;
+    cursor:pointer;
+    transition:all 0.22s;
+  }
+  .sbtn:hover { border-color:var(--ocean-bright);color:var(--ocean-bright); }
+  .sbtn.active {
+    background:var(--ocean-bright);
+    border-color:var(--ocean-bright);
+    color:var(--ocean-deep);
+    font-weight:700;
+  }
+  .grid {
+    max-width:1200px;
+    margin:0 auto;
+    padding:20px 20px 60px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+    gap:24px;
+  }
+  .card {
+    background:rgba(13,34,64,0.72);
+    border:1px solid rgba(34,211,238,0.12);
+    border-radius:16px;
+    overflow:hidden;
+    transition:transform 0.3s,box-shadow 0.3s,border-color 0.3s;
+  }
+  .card:hover {
+    transform:translateY(-4px);
+    box-shadow:0 20px 50px rgba(0,0,0,0.35),0 0 25px rgba(34,211,238,0.06);
+    border-color:rgba(34,211,238,0.28);
+  }
+  .card.hidden { display:none; }
+  .card-head {
+    padding:20px 22px 15px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid rgba(255,255,255,0.07);
+  }
+  .mname {
+    font-family:'Playfair Display',serif;
+    font-size:1.45rem;
+    font-weight:700;
+    color:var(--sand);
+  }
+  .stag {
+    font-size:0.7rem;
+    font-weight:700;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    padding:4px 12px;
+    border-radius:20px;
+  }
+  .s-summer { background:rgba(224,92,58,0.18);color:#f48c6e;border:1px solid rgba(224,92,58,0.38); }
+  .s-autumn { background:rgba(212,168,67,0.18);color:#e8c274;border:1px solid rgba(212,168,67,0.38); }
+  .s-winter { background:rgba(14,116,144,0.22);color:#67d5f0;border:1px solid rgba(14,116,144,0.45); }
+  .s-spring { background:rgba(45,106,79,0.22);color:#74c99b;border:1px solid rgba(45,106,79,0.45); }
+  .card-body { padding:16px 22px 22px; }
+  .conds {
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+    font-size:0.78rem;
+    color:var(--text-muted);
+  }
+  .slabel {
+    font-size:0.68rem;
+    font-weight:700;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--ocean-bright);
+    opacity:0.8;
+    margin-bottom:8px;
+    margin-top:14px;
+  }
+  .flist { list-style:none;display:flex;flex-direction:column;gap:7px; }
+  .fi {
+    display:flex;
+    align-items:flex-start;
+    gap:9px;
+    padding:9px 11px;
+    background:rgba(255,255,255,0.038);
+    border-radius:9px;
+    border-left:3px solid var(--ocean-teal);
+  }
+  .fi:hover { background:rgba(34,211,238,0.055); }
+  .fi.gold { border-left-color:var(--gold); }
+  .fi.hot { border-left-color:var(--coral); }
+  .ficon { font-size:1rem;flex-shrink:0;margin-top:2px; }
+  .fd { flex:1; }
+  .fname {
+    font-weight:600;
+    font-size:0.88rem;
+    color:var(--text-light);
+    margin-bottom:2px;
+  }
+  .badge-gold { font-size:0.65rem;color:var(--gold);margin-left:5px; }
+  .badge-hot {
+    font-size:0.65rem;
+    background:var(--coral);
+    color:#fff;
+    padding:1px 6px;
+    border-radius:4px;
+    margin-left:5px;
+    font-weight:700;
+  }
+  .fbait {
+    font-size:0.77rem;
+    color:var(--text-muted);
+    line-height:1.42;
+  }
+  .fbait strong { color:#a8c8e0;font-weight:600; }
+  .tip {
+    margin-top:14px;
+    padding:11px 13px;
+    background:rgba(34,211,238,0.055);
+    border-radius:9px;
+    border:1px solid rgba(34,211,238,0.14);
+    font-size:0.78rem;
+    color:var(--text-muted);
+    line-height:1.5;
+  }
+  .tip::before { content:'💡 '; }
+  footer {
+    text-align:center;
+    padding:28px 20px;
+    font-size:0.76rem;
+    color:var(--text-muted);
+    border-top:1px solid rgba(255,255,255,0.06);
+    line-height:1.6;
+    max-width:900px;
+    margin:0 auto;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Fraser Coast · Hervey Bay · Great Sandy Strait · K'gari</p>
+  <h1>Monthly <span>Fishing Guide</span></h1>
+  <p class="header-sub">Species targets, seasonal bait patterns and local knowledge compiled from Fishing Monthly, local charter operators, tackle shops and Fraser Coast fishing forums.</p>
+</header>
+
+<div class="legend">
+  <div class="li"><div class="lb lb-gold"></div>Prime / peak target month</div>
+  <div class="li"><div class="lb lb-coral"></div>Hot bite or active run</div>
+  <div class="li"><div class="lb lb-teal"></div>Good fishing, not peak</div>
+</div>
+
+<div class="season-nav">
+  <button class="sbtn active" onclick="filterSeason('all',this)">All Months</button>
+  <button class="sbtn" onclick="filterSeason('summer',this)">☀️ Summer</button>
+  <button class="sbtn" onclick="filterSeason('autumn',this)">🍂 Autumn</button>
+  <button class="sbtn" onclick="filterSeason('winter',this)">❄️ Winter</button>
+  <button class="sbtn" onclick="filterSeason('spring',this)">🌿 Spring</button>
+</div>
+
+<div class="grid" id="grid">
+
+<!-- JANUARY -->
+<div class="card" data-season="summer">
+  <div class="card-head">
+    <span class="mname">January</span>
+    <span class="stag s-summer">Summer</span>
+  </div>
+  <div class="card-body">
+    <div class="conds"><span>🌡️ 25–29°C</span><span>🌬️ NE/SE winds</span><span>🌧️ Wet season peak</span></div>
+    <div class="slabel">Prime Targets</div>
+    <ul class="flist">
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Spotted Mackerel<span class="badge-hot">HOT</span></div>
+          <div class="fbait"><strong>Bait:</strong> Live yakkas (yellowtail), silver hard-bodies, trolled feathers & minnow lures. Target bait balls in Platypus Bay.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Black Marlin (Juvenile)<span class="badge-hot">FLATS</span></div>
+          <div class="fbait"><strong>Bait:</strong> Trolled skirts & lures, fly lines. The west coast flats of Fraser Island — world's only shallow-water sight-cast marlin fishery. Fish in under a metre of water at Rooneys Point.</div>
+        </div>
+      </li>
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Golden Trevally<span class="badge-gold">★ PRIME</span></div>
+          <div class="fbait"><strong>Bait:</strong> Live prawns, small crabs, poppers, soft plastics & flies on Fraser Island flats. Best on calm sunny days — sight cast to tailing fish. Peak Oct–March.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Barramundi</div>
+          <div class="fbait"><strong>Bait:</strong> Live mullet, lures (hard-bodies & soft plastics). Mary, Burrum & Susan Rivers. ⚠️ Closed season 1 Nov–1 Feb in tidal waters — target impoundments (Lenthalls) during closure.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Queenfish</div>
+          <div class="fbait"><strong>Bait:</strong> Stickbaits, lures, soft plastics & poppers over flats. Often school alongside GTs and golden trevally near bait balls.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Coral Trout / Sweetlip</div>
+          <div class="fbait"><strong>Bait:</strong> Live yakkas, whole pilchards, lures & soft plastics on inshore reefs. Sharks active — lure fishing limits losses to predators.</div>
+        </div>
+      </li>
+    </ul>
+    <div class="tip">Bait balls form throughout the bay in January. Follow the birds — where pilchards, herring or yakkas are being pushed to the surface, mackerel and marlin are never far below.</div>
+  </div>
+</div>
+
+<!-- FEBRUARY -->
+<div class="card" data-season="summer">
+  <div class="card-head">
+    <span class="mname">February</span>
+    <span class="stag s-summer">Summer</span>
+  </div>
+  <div class="card-body">
+    <div class="conds"><span>🌡️ 26–29°C</span><span>🌬️ NE winds</span><span>🌧️ Wet season</span></div>
+    <div class="slabel">Prime Targets</div>
+    <ul class="flist">
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Spotted Mackerel<span class="badge-hot">HOT</span></div>
+          <div class="fbait"><strong>Bait:</strong> Trolled silver minnows, live bait (yakkas & garfish), casting metals at surfacing schools. Platypus Bay runs peak.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Longtail Tuna (early season)</div>
+          <div class="fbait"><strong>Bait:</strong> Stickbaits & metals cast to feeding schools. Post-freshwater run-off — fish the dirty water line where bait concentrates at the edge of clear and murky water.</div>
+        </div>
+      </li>
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Golden Trevally<span class="badge-gold">★ FLATS FIRE</span></div>
+          <div class="fbait"><strong>Bait:</strong> Live prawns, crabs, flies & soft plastics. Post-freshwater events push big bait schools onto flats, goldies follow in numbers.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Mangrove Jack</div>
+          <div class="fbait"><strong>Bait:</strong> Live poddy mullet, hard-body & soft plastic lures worked tight to mangrove structure. Creek systems & channels in the Great Sandy Straits.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Threadfin Salmon</div>
+          <div class="fbait"><strong>Bait:</strong> Live baits, soft plastics & hard-bodies worked through estuarine channels. Great Sandy Straits and Mary River mouth.</div>
+        </div>
+      </li>
+    </ul>
+    <div class="tip">Freshwater run-off concentrates bait along the turbidity line. Work the clear/dirty water interface — longtail tuna and golden trevally use this edge to ambush.</div>
+  </div>
+</div>
+
+<!-- MARCH -->
+<div class="card" data-season="autumn">
+  <div class="card-head">
+    <span class="mname">March</span>
+    <span class="stag s-autumn">Autumn</span>
+  </div>
+  <div class="card-body">
+    <div class="conds"><span>🌡️ 24–27°C</span><span>🌬️ Variable</span><span>🐟 Tuna season ignites</span></div>
+    <div class="slabel">Prime Targets</div>
+    <ul class="flist">
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Longtail Tuna<span class="badge-gold">★ PRIME</span></div>
+          <div class="fbait"><strong>Bait:</strong> Stickbaits, soft plastics, metals & flies. Schools move through Platypus Bay — March through June is the height of tuna activity on the Fraser Coast.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Golden Trevally<span class="badge-hot">HOT</span></div>
+          <div class="fbait"><strong>Bait:</strong> Live prawns, flies, poppers & soft plastics on flats. Fish feeding aggressively before water temperatures drop. Big fish on the flats this time of year.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Queenfish</div>
+          <div class="fbait"><strong>Bait:</strong> Stickbaits, slugs & poppers over flats and along bait ball edges. Spectacular aerial acrobatics — be ready for long runs.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Spanish & Broadbar Mackerel</div>
+          <div class="fbait"><strong>Bait:</strong> Trolled lures, live yakkas & garfish. Appear around bait balls alongside longtails — some seasons produce excellent early Spanish mackerel.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Cobia</div>
+          <div class="fbait"><strong>Bait:</strong> Live bait (crabs, fish), jigging. Often found alongside tuna schools and around bait balls.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Bream (creek pre-spawn run)</div>
+          <div class="fbait"><strong>Bait:</strong> Prawns, worms, small lures. Pre-spawn bream prolific in island creeks and the Susan/Mary estuaries. March often produces quality fish.</div>
+        </div>
+      </li>
+    </ul>
+    <div class="tip">Local guides consider March the best month for sheer variety. Work bait balls on top for tuna, then drop a 40–60g jig underneath the same bait school and you'll find golden trevally waiting below.</div>
+  </div>
+</div>
+
+<!-- APRIL -->
+<div class="card" data-season="autumn">
+  <div class="card-head">
+    <span class="mname">April</span>
+    <span class="stag s-autumn">Autumn</span>
+  </div>
+  <div class="card-body">
+    <div class="conds"><span>🌡️ 22–25°C</span><span>🌬️ SE winds building</span><span>🐟 Peak variety</span></div>
+    <div class="slabel">Prime Targets</div>
+    <ul class="flist">
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Longtail Tuna<span class="badge-gold">★ PRIME</span></div>
+          <div class="fbait"><strong>Bait:</strong> Stickbaits, metals, soft plastics & flies on tailing or surface schools. Now widespread across Platypus Bay and along inside of Fraser Island.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Spanish Mackerel<span class="badge-hot">RUNNING</span></div>
+          <div class="fbait"><strong>Bait:</strong> Trolled hard-bodies, live yakkas & garfish. Big Spaniards increasingly common — check outer reef edges and gutters.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Snapper (first arrivals)</div>
+          <div class="fbait"><strong>Bait:</strong> Whole pilchards, soft plastics & jigs. First fish appearing on the Artificial Reef and inshore spots. Numbers build rapidly into May.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Sand Whiting (pre-winter)</div>
+          <div class="fbait"><strong>Bait:</strong> Fresh yabbies, beach worms, pipis. Begin fishing the early evening full and new moon high tides — whiting anglers switch to this winter pattern in April.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Reef Species (inshore)</div>
+          <div class="fbait"><strong>Bait:</strong> Pilchards, squid, lures. Sweetlip, cod, coral trout & nannygai on inshore coffee rock. Cooling water reduces shark pressure — perfect timing.</div>
+        </div>
+      </li>
+    </ul>
+    <div class="tip">Barramundi and mangrove jack activity slows as night temperatures drop toward 15°C. Shift your focus to tuna, mackerel and the early snapper season coming on strong.</div>
+  </div>
+</div>
+
+<!-- MAY -->
+<div class="card" data-season="autumn">
+  <div class="card-head">
+    <span class="mname">May</span>
+    <span class="stag s-autumn">Autumn</span>
+  </div>
+  <div class="card-body">
+    <div class="conds"><span>🌡️ 20–23°C</span><span>🌬️ Light SE — ideal</span><span>🐟 Reef season opens</span></div>
+    <div class="slabel">Prime Targets</div>
+    <ul class="flist">
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Snapper<span class="badge-gold">★ SEASON PEAK BEGINS</span></div>
+          <div class="fbait"><strong>Bait:</strong> Whole pilchards, soft plastics (worked around bait schools), jigs 40–60g. Nomad Buffalo & Cast OTD jigs are proven performers. Inshore spots first, then Platypus Bay as winter progresses.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Spanish Mackerel<span class="badge-hot">HOT RUN</span></div>
+          <div class="fbait"><strong>Bait:</strong> Trolled hard-bodies & skirts, live bait yakkas. Excellent May–June run on outer reefs and deeper gutters. Quality fish this month.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Longtail Tuna (surface to deep)</div>
+          <div class="fbait"><strong>Bait:</strong> Stickbaits on surface; jigging when fish move deeper. Work yakka schools — tuna and golden trevally often stack under the same bait.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Coral Trout<span class="badge-gold">★ TROPHY WINDOW</span></div>
+          <div class="fbait"><strong>Bait:</strong> Lures (fish come out to hit — lighter outfits work), live yakkas, soft plastics. Shark numbers dropping = higher landing rates on big trophy trout.</div>
+        </div>
+      </li>
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Sand Whiting<span class="badge-gold">★ BEST MONTHS BEGIN</span></div>
+          <div class="fbait"><strong>Bait:</strong> Fresh yabbies (pumped), beach worms & pipis. Inside Fraser Island beaches, foreshores and sandbars. Evening moon tides extremely productive May–September.</div>
+        </div>
+      </li>
+    </ul>
+    <div class="tip">May–August is prime reef fishing time. Lighter winds allow offshore access, baitfish flood inshore reefs, and the shark numbers drop. Snapper move in to feed on the baitfish — it's their favourite time in the bay too.</div>
+  </div>
+</div>
+
+<!-- JUNE -->
+<div class="card" data-season="winter">
+  <div class="card-head">
+    <span class="mname">June</span>
+    <span class="stag s-winter">Winter</span>
+  </div>
+  <div class="card-body">
+    <div class="conds"><span>🌡️ 18–21°C</span><span>🌬️ SW winds</span><span>🐟 Bait schools flood inshore</span></div>
+    <div class="slabel">Prime Targets</div>
+    <ul class="flist">
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Snapper<span class="badge-gold">★ PRIME</span></div>
+          <div class="fbait"><strong>Bait:</strong> Soft plastics around bait schools (herring, yakkas, pike), whole pilchards, jigs. Fish dawn & dusk. Silent approach essential — snapper spook easily in the shallow clear water of Platypus Bay.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Spanish Mackerel<span class="badge-hot">PEAK RUN</span></div>
+          <div class="fbait"><strong>Bait:</strong> Trolled hard-bodies, skirts & live yakkas. June is one of the best mackerel months of the year on the Fraser Coast.</div>
+        </div>
+      </li>
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Coral Trout<span class="badge-gold">★ TROPHY SEASON</span></div>
+          <div class="fbait"><strong>Bait:</strong> Lures, live yakkas, soft plastics. Minimal shark presence = maximum chance of boating a trophy trout. One of the best months for quality coral trout all year.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Broadbar Mackerel (Broadys)</div>
+          <div class="fbait"><strong>Bait:</strong> Trolled lures & jigs. Winter favourite for eating — delicate white flesh. Straits and bay-side reefs.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Sand Whiting</div>
+          <div class="fbait"><strong>Bait:</strong> Fresh yabbies, beach worms, pipis. Inside Fraser Island between Wathumba Creek and Arch Cliffs. Cooler water = active, shallow feeding fish.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Bream (winter aggregations)</div>
+          <div class="fbait"><strong>Bait:</strong> Prawns, lures, soft plastics. Pre-spawn aggregations form in the Straits and around jetties and structure. June–July is good winter bream fishing.</div>
+        </div>
+      </li>
+    </ul>
+    <div class="tip">Locate bait schools on the sounder first — snapper will be on the edge of the school. Drop soft plastics or pilchards through the bait at the turn of the tide. Quiet motor approach is critical in less than 5m of water.</div>
+  </div>
+</div>
+
+<!-- JULY -->
+<div class="card" data-season="winter">
+  <div class="card-head">
+    <span class="mname">July</span>
+    <span class="stag s-winter">Winter</span>
+  </div>
+  <div class="card-body">
+    <div class="conds"><span>🌡️ 17–20°C</span><span>🌬️ SW winds (can be tough)</span><span>🐳 Whale season</span></div>
+    <div class="slabel">Prime Targets</div>
+    <ul class="flist">
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Snapper<span class="badge-gold">★ PRIME</span></div>
+          <div class="fbait"><strong>Bait:</strong> Soft plastics around yakka schools, jigs (40–60g), whole pilchards, cut baits. Platypus Bay and 25 Fathom Hole very productive. Trevally schools working the same grounds may require tactic changes to single out snapper.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">School Mackerel (inshore)<span class="badge-hot">STRAITS</span></div>
+          <div class="fbait"><strong>Bait:</strong> Trolled feathers, small minnow lures, metals. Woody Island, Kingfisher Bay and Sandy Straits — consistent school mackerel in July. Great kids' fishing.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Tailor (Fraser Island)<span class="badge-hot">FIRING</span></div>
+          <div class="fbait"><strong>Bait:</strong> Whole pilchards (gang hooks), metal slugs, poppers. Fraser Island ocean beach tailor runs from July through November — quality class fish in the surf gutters.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Giant Herring (Ladyfish)</div>
+          <div class="fbait"><strong>Bait:</strong> Stickbaits (Rapala Crush City is proven). Spectacular surface fighters — huge long runs and aerials. Winter herring sessions are a highlight of the cooler months.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Mixed Trevally (Straits)</div>
+          <div class="fbait"><strong>Bait:</strong> Jigs 40–60g, lures, soft plastics. Bluespot, tealeaf, diamond, golden, bludger & giant trevally — diverse winter aggregations in the Sandy Straits.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Sand Whiting</div>
+          <div class="fbait"><strong>Bait:</strong> Fresh yabbies, pipis, beach worms. August full moon run is building — prep your spots north of Moon Point.</div>
+        </div>
+      </li>
+    </ul>
+    <div class="tip">Windy July days? Head into the Sandy Straits — school mackerel, mixed trevally, tailor, flathead and squid all produce in the sheltered channels regardless of bay conditions.</div>
+  </div>
+</div>
+
+<!-- AUGUST -->
+<div class="card" data-season="winter">
+  <div class="card-head">
+    <span class="mname">August</span>
+    <span class="stag s-winter">Winter</span>
+  </div>
+  <div class="card-body">
+    <div class="conds"><span>🌡️ 17–20°C</span><span>🌬️ SW / SE winds</span><span>🐟 Reef peak month</span></div>
+    <div class="slabel">Prime Targets</div>
+    <ul class="flist">
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Snapper<span class="badge-gold">★ PRIME</span></div>
+          <div class="fbait"><strong>Bait:</strong> Soft plastics on bait schools, jigs, whole pilchards & cut baits. 25 Fathom Hole, Gutters and Platypus Bay reefs loaded with yakkas and snapper. Quality knobby snapper in August.</div>
+        </div>
+      </li>
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Sand Whiting<span class="badge-gold">★ FULL MOON RUN</span></div>
+          <div class="fbait"><strong>Bait:</strong> Fresh yabbies, beach worms, pipis. The August full moon triggers the most reliable whiting run of the year north of Moon Point, inside Fraser Island. Fish the early evening high tides.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Coral Trout / Mixed Reef</div>
+          <div class="fbait"><strong>Bait:</strong> Lures (lighter rigs — fish come off reef to strike), live yakkas, soft plastics & vibes ~20g. Shellie's, The Bluff and Tinninbar Reef all producing well. Squid & pillies also effective.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Flathead<span class="badge-hot">AUG–NOV SEASON</span></div>
+          <div class="fbait"><strong>Bait:</strong> Live herring, soft plastics 3–4" (drains & drop-offs on mid-morning low tides), yabbies. Flathead season runs August to November in Hervey Bay creeks and inlets.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Tailor (Fraser Island)</div>
+          <div class="fbait"><strong>Bait:</strong> Pilchards, metal slugs & poppers in surf gutters. Consistent beach tailor now running well on Fraser's ocean beaches.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Golden Trevally (flats return)</div>
+          <div class="fbait"><strong>Bait:</strong> Soft plastics & live prawns. Goldies begin working the Fraser Island flats again from August through to April — sight-fishing on flat calm mornings.</div>
+        </div>
+      </li>
+    </ul>
+    <div class="tip">Squid and pillies for reef species, vibes for fast prospecting. Roy Rufus, Hardie and Simpson Artificial Reefs fish the turn of the tide — bait placement on the structure is critical. Move if no bites after 10 minutes.</div>
+  </div>
+</div>
+
+<!-- SEPTEMBER -->
+<div class="card" data-season="spring">
+  <div class="card-head">
+    <span class="mname">September</span>
+    <span class="stag s-spring">Spring</span>
+  </div>
+  <div class="card-body">
+    <div class="conds"><span>🌡️ 19–22°C</span><span>🌬️ SE trades</span><span>🐟 Transition month</span></div>
+    <div class="slabel">Prime Targets</div>
+    <ul class="flist">
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Snapper (late season)</div>
+          <div class="fbait"><strong>Bait:</strong> Soft plastics, jigs. Numbers tailing off but quality fish still around. Longtails begin reappearing — possible to catch both in same session.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Longtail Tuna (returning)<span class="badge-hot">BUILDING</span></div>
+          <div class="fbait"><strong>Bait:</strong> Stickbaits, soft plastics & metals. Big fish at 1–1.2m start building through September. Some of the largest longtails of the season caught this month.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Tailor<span class="badge-hot">FRASER BEACHES PEAK</span></div>
+          <div class="fbait"><strong>Bait:</strong> Whole pilchards, metal slugs, poppers. One of the best months for tailor on Fraser Island surf beaches. Dawn and dusk surf gutter sessions are reliable.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Flathead (spawning aggregations)</div>
+          <div class="fbait"><strong>Bait:</strong> Soft plastics, live herring, lures. Flathead gather to spawn in the Sandy Straits — good light tackle fishing on breezy days when the open bay is rough.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Mixed Trevally & Grunter</div>
+          <div class="fbait"><strong>Bait:</strong> Jigs, lures, metals, cut bait. Queenfish, school mackerel & jewfish still active through the Straits. Thin triangle of squid or mullet flesh is excellent grunter bait at dusk.</div>
+        </div>
+      </li>
+    </ul>
+    <div class="tip">September bridges winter and spring. Start the day at a snapper reef for late-season fish, then switch to the surface mid-morning as longtails begin chasing bait schools in the warming water.</div>
+  </div>
+</div>
+
+<!-- OCTOBER -->
+<div class="card" data-season="spring">
+  <div class="card-head">
+    <span class="mname">October</span>
+    <span class="stag s-spring">Spring</span>
+  </div>
+  <div class="card-body">
+    <div class="conds"><span>🌡️ 21–24°C</span><span>🌬️ SE trades easing</span><span>🐟 Spring pelagic surge</span></div>
+    <div class="slabel">Prime Targets</div>
+    <ul class="flist">
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Black Marlin (Juvenile)<span class="badge-gold">★ SEASON OPENS</span></div>
+          <div class="fbait"><strong>Bait:</strong> Trolled skirts & lures, stickbaits on fly. The world's ONLY location to sight-cast to free-swimming juvenile black marlin in under a metre of water — Rooneys Point, Fraser Island. Book ahead, October–December.</div>
+        </div>
+      </li>
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Golden Trevally<span class="badge-gold">★ FLATS FIRING</span></div>
+          <div class="fbait"><strong>Bait:</strong> Flies, soft plastics, live prawns & crabs. Best sight-fishing of the year begins. Fish tailing goldies in the crystal-clear shallow water of the Fraser Island flats. Peak Oct–March.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Longtail Tuna</div>
+          <div class="fbait"><strong>Bait:</strong> Stickbaits, metals, flies. Surface action surges as water warms. Large schools widespread across Platypus Bay.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Queenfish & Giant Trevally</div>
+          <div class="fbait"><strong>Bait:</strong> Poppers, stickbaits, large lures. Flats coming alive — GTs to 30kg have been caught off Urangan Pier in the warmer months.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Tailor (last strong month)</div>
+          <div class="fbait"><strong>Bait:</strong> Pilchards, metal slugs. Good class tailor still running Fraser beaches before summer heat disperses schools.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Inshore Reef Species</div>
+          <div class="fbait"><strong>Bait:</strong> Lures, soft plastics, pilchards. Coral trout, sweetlip, cod and grass sweetlip swarming on inshore reefs as water warms.</div>
+        </div>
+      </li>
+    </ul>
+    <div class="tip">Book your October flats trip early — it's arguably the most extraordinary fishing experience in Australia. Juvenile black marlin within arm's reach in under a metre of crystal clear water is like nothing else on earth.</div>
+  </div>
+</div>
+
+<!-- NOVEMBER -->
+<div class="card" data-season="spring">
+  <div class="card-head">
+    <span class="mname">November</span>
+    <span class="stag s-spring">Spring</span>
+  </div>
+  <div class="card-body">
+    <div class="conds"><span>🌡️ 23–26°C</span><span>🌬️ NE winds building</span><span>🐟 Bait balls forming</span></div>
+    <div class="slabel">Prime Targets</div>
+    <ul class="flist">
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Black Marlin<span class="badge-gold">★ PRIME FLATS SEASON</span></div>
+          <div class="fbait"><strong>Bait:</strong> Trolled skirts & lures, sight-casting on fly. Juvenile marlin peak on the Rooneys Point shallow flats. Hervey Bay Boat Club tournament (Nov) has recorded 169 marlin by 11 boats in 3 days.</div>
+        </div>
+      </li>
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Spotted Mackerel<span class="badge-gold">★ ARRIVING</span></div>
+          <div class="fbait"><strong>Bait:</strong> Trolled silver minnows, live yakkas & garfish, casting metals at bait balls. Large schools move into Platypus Bay from mid-November. Great Christmas lead-up fishing.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Golden Trevally</div>
+          <div class="fbait"><strong>Bait:</strong> Live prawns, crabs, flies & soft plastics. Highly active on the flats — bait balls create constant feeding opportunities across the bay.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Cobia</div>
+          <div class="fbait"><strong>Bait:</strong> Live fish, crabs, jigs. Often found shadowing manta rays and bait balls. Urangan Pier produces cobia in spring. Strong table fish and hard fighters.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Inshore Reef (cod, sweetlip, trout)</div>
+          <div class="fbait"><strong>Bait:</strong> Lures, soft plastics, pilchards. Cod, painted sweetlip, coral trout & grass sweetlip active on warming inshore reefs. Note rising shark activity — use lures to avoid losing fish at the boat.</div>
+        </div>
+      </li>
+    </ul>
+    <div class="tip">Bait balls are a daily feature in November — spotted mackerel, tuna and other species stack underneath feeding birds. The rod-tip action watching predators smash surface bait is some of the most visual fishing on the east coast.</div>
+  </div>
+</div>
+
+<!-- DECEMBER -->
+<div class="card" data-season="summer">
+  <div class="card-head">
+    <span class="mname">December</span>
+    <span class="stag s-summer">Summer</span>
+  </div>
+  <div class="card-body">
+    <div class="conds"><span>🌡️ 24–27°C</span><span>🌬️ NE winds / variable</span><span>🐟 Summer pelagics peak</span></div>
+    <div class="slabel">Prime Targets</div>
+    <ul class="flist">
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Spotted Mackerel<span class="badge-gold">★ PRIME</span></div>
+          <div class="fbait"><strong>Bait:</strong> Live yakkas & garfish, trolled hard-bodies & feathers, casting metals at breaking fish. Large schools across Platypus Bay — excellent Christmas holiday fishing for all ages.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Black Marlin (season closing)<span class="badge-hot">FINAL WEEKS</span></div>
+          <div class="fbait"><strong>Bait:</strong> Trolled skirts, lures & fly lines. Final weeks of the juvenile marlin run on the Fraser Island flats. Don't miss the last shots.</div>
+        </div>
+      </li>
+      <li class="fi hot">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Longtail Tuna (early run returns)</div>
+          <div class="fbait"><strong>Bait:</strong> Stickbaits, metals & flies. School-size fish appear ahead of the autumn peak. Target bait balls and feeding schools on the surface.</div>
+        </div>
+      </li>
+      <li class="fi gold">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Golden Trevally<span class="badge-gold">★ FLATS PRIME</span></div>
+          <div class="fbait"><strong>Bait:</strong> Flies, live prawns, soft plastics & crabs. Summer flats fishing is spectacular — tailing golden trevally on crystal-clear sandy shallows in warm conditions.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Sand Whiting</div>
+          <div class="fbait"><strong>Bait:</strong> Yabbies, beach worms, pipis. Found in slightly deeper water in summer but still plentiful on foreshores. Great fun fishing for kids and families.</div>
+        </div>
+      </li>
+      <li class="fi">
+        <span class="ficon">🎣</span>
+        <div class="fd">
+          <div class="fname">Bream (estuaries)</div>
+          <div class="fbait"><strong>Bait:</strong> Prawns, worms, soft plastics & hard-bodies around jetties, pontoons and mangrove edges. Year-round option but active in warm water.</div>
+        </div>
+      </li>
+    </ul>
+    <div class="tip">Christmas holiday bait ball action is a highlight — Urangan Pier is a great family option in December as mackerel, tuna, queenfish and trevally are all drawn in by vast schools of herring and hardyheads around the pylons.</div>
+  </div>
+</div>
+
+</div><!-- end grid -->
+
+<footer>
+  Sources: Fishing Monthly (Fraser Coast monthly reports), Fisho's Tackle World Hervey Bay fishing guides, Hervey Bay Fly &amp; Sportfishing, Hot Reels Pro Fish Charters, Fraser Guided Fishing, Wiki Fishing Spots, Coastwatch weekly reports, Visit Fraser Coast, Tackle Tactics and Fishing World Australia. Always check current QLD Fisheries regulations and bag limits before heading out. Note: Barramundi season closes 1 November – 1 February in Queensland tidal waters. Golden trevally flats data sourced from guides operating in the Great Sandy Straits Marine Park. This guide covers Hervey Bay, Fraser Coast, Great Sandy Straits, K'gari (Fraser Island) and adjacent waters only.
+</footer>
+
+<script>
+function filterSeason(season, btn) {
+  document.querySelectorAll('.sbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.card').forEach(card => {
+    if (season === 'all' || card.dataset.season === season) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+}
+</script>
+</body>
+</html>
